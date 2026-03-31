@@ -10,7 +10,8 @@ public class Main {
             loadNames("NameFile.txt", studentMap);
             loadCourses("CourseFile.txt", studentMap);
             writeOutput("Output.txt", studentMap);
-        } catch(Exception e) {
+            System.out.println("Processing complete. Check Output.txt for results.");
+        } catch (Exception e) {
             System.err.println("Execution Error: " + e.getMessage());
         }
     }
@@ -28,13 +29,17 @@ public class Main {
             
             String[] parts = line.split(",");
 
-            //checks there is an ID and a name, throws exception if not
+            // Offensive Programming: checks there is an ID and a name, skips if not
             if (parts.length < 2 || parts[0].trim().isEmpty() || parts[1].trim().isEmpty()) {
-                sc.close();
-                throw new RuntimeException("NameFile.txt line has improper line");
+                System.err.println("Warning: NameFile.txt has an improper line. Skipping.");
+                continue; 
             }
-            //maps student ID to a new student object
-            map.put(parts[0].trim(), new Student(parts[1].trim()));
+            
+            String id = parts[0].trim();
+            String name = parts[1].trim();
+            
+            // maps student ID to a new student object
+            map.put(id, new Student(id, name));
         }
         sc.close();
     }
@@ -53,15 +58,24 @@ public class Main {
             String[] p = line.split(",");
             String id = p[0].trim();
             
-            //checks that ID is in map, throws exception if not
+            // Offensive Programming: checks that ID is in map, skips and warns if not
             if (!map.containsKey(id)) {
-                sc.close();
-                throw new RuntimeException("Student ID: "  + id + " not found in NameFile");
-
+                System.err.println("Warning: Student ID " + id + " not found in NameFile. Skipping course record.");
+                continue;
             }
-            //gets student object using their ID. Then calculates grade
-            map.get(id).addCourseResult(p[1].trim(), Double.parseDouble(p[2].trim()), Double.parseDouble(p[3].trim()), Double.parseDouble(p[4].trim()), Double.parseDouble(p[5].trim()));
-
+            
+            try {
+                // gets student object using their ID. Then calculates grade
+                map.get(id).addCourseResult(
+                    p[1].trim(), 
+                    Double.parseDouble(p[2].trim()), 
+                    Double.parseDouble(p[3].trim()), 
+                    Double.parseDouble(p[4].trim()), 
+                    Double.parseDouble(p[5].trim())
+                );
+            } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
+                 System.err.println("Warning: Malformed data for Student ID " + id + ". Skipping row.");
+            }
         }
         sc.close();
     }
@@ -69,14 +83,24 @@ public class Main {
     private static void writeOutput(String file, Map<String, Student> map) throws IOException {
         PrintWriter out = new PrintWriter(new File(file));
 
-        for (Map.Entry<String, Student> entry: map.entrySet()) {
+        // Print header for the table
+        out.println(String.format("%-15s %-25s %-10s %-15s", "Student ID", "Student Name", "Course", "Final Grade"));
+        out.println("-------------------------------------------------------------------");
+
+        for (Map.Entry<String, Student> entry : map.entrySet()) {
             String id = entry.getKey();
             Student s = entry.getValue();
-            for (String result : s.getCourseResults()) {
-                out.println(id + "," + s.getName() + "," + result);
+            
+            if (s.getCourseResults().isEmpty()) {
+                // If student has no courses, print them with N/A
+                out.println(String.format("%-15s %-25s %-10s %-15s", id, s.getName(), "N/A", "N/A"));
+            } else {
+                for (String result : s.getCourseResults()) {
+                    // result string is already formatted in Student.java
+                    out.println(String.format("%-15s %-25s %s", id, s.getName(), result));
+                }
             }
         }
         out.close();
     }
 }
-
