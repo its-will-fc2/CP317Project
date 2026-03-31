@@ -12,7 +12,7 @@ public class Main {
             writeOutput("Output.txt", studentMap);
             System.out.println("Processing complete. Check Output.txt for results.");
         } catch (Exception e) {
-            System.err.println("Execution Error: " + e.getMessage());
+            System.err.println("PROGRAM HALTED DUE TO ERROR: " + e.getMessage());
         }
     }
 
@@ -20,25 +20,20 @@ public class Main {
         Scanner sc = new Scanner(new File(file));
 
         //read NameFile.txt
-        while (sc.hasNextLine()) {
+       while (sc.hasNextLine()) {
             String line = sc.nextLine().trim();
-
-            if (line.isEmpty()) {
-                continue;
-            }
+            if (line.isEmpty()) continue;
             
             String[] parts = line.split(",");
 
-            // Offensive Programming: checks there is an ID and a name, skips if not
+            // Offensive Programming: If the line is malformed, halt execution.
             if (parts.length < 2 || parts[0].trim().isEmpty() || parts[1].trim().isEmpty()) {
-                System.err.println("Warning: NameFile.txt has an improper line. Skipping.");
-                continue; 
+                sc.close();
+                throw new IllegalArgumentException("Corrupted data in NameFile.txt. Missing ID or Name.");
             }
             
             String id = parts[0].trim();
             String name = parts[1].trim();
-            
-            // maps student ID to a new student object
             map.put(id, new Student(id, name));
         }
         sc.close();
@@ -58,24 +53,20 @@ public class Main {
             String[] p = line.split(",");
             String id = p[0].trim();
             
-            // Offensive Programming: checks that ID is in map, skips and warns if not
+            // OFFENSIVE PROGRAMMING: If a course record exists for a non-existent student, crash loudly.
             if (!map.containsKey(id)) {
-                System.err.println("Warning: Student ID " + id + " not found in NameFile. Skipping course record.");
-                continue;
+                sc.close();
+                throw new IllegalStateException("Data Integrity Error: Student ID " + id + " found in CourseFile but not in NameFile.");
             }
             
-            try {
-                // gets student object using their ID. Then calculates grade
-                map.get(id).addCourseResult(
-                    p[1].trim(), 
-                    Double.parseDouble(p[2].trim()), 
-                    Double.parseDouble(p[3].trim()), 
-                    Double.parseDouble(p[4].trim()), 
-                    Double.parseDouble(p[5].trim())
-                );
-            } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
-                 System.err.println("Warning: Malformed data for Student ID " + id + ". Skipping row.");
-            }
+            // Offensive Programming - If Double.parseDouble fails, it will naturally throw a NumberFormatException
+            map.get(id).addCourseResult(
+                p[1].trim(), 
+                Double.parseDouble(p[2].trim()), 
+                Double.parseDouble(p[3].trim()), 
+                Double.parseDouble(p[4].trim()), 
+                Double.parseDouble(p[5].trim())
+            );
         }
         sc.close();
     }
