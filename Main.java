@@ -53,6 +53,12 @@ public class Main {
             String[] p = line.split(",");
             String id = p[0].trim();
             
+            // OFFENSIVE PROGRAMMING: Checks if row has 6 items
+            if (p.length < 6) {
+                sc.close();
+                throw new IllegalArgumentException("Data Integreity Error: Incomplete or incorrect form");
+            }
+
             // OFFENSIVE PROGRAMMING: If a course record exists for a non-existent student, crash loudly.
             if (!map.containsKey(id)) {
                 sc.close();
